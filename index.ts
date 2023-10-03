@@ -15,9 +15,16 @@ app.get('/', (req, res) => {
   res.send('Hey this is my API running 🥳')
 })
 
-app.get('/about', (req, res) => {
-  res.send('This is my about route..... ')
+app.get(`/useri`, async (req, res) => {
+  const result = await prisma.user.create({
+    data: {
+      "email": "teste@#teste",
+      "name": "name"
+    },
+  })
+  res.json(result)
 })
+
 
 app.listen(3000, () =>
   console.log('REST API server ready at: http://localhost:3000'),
