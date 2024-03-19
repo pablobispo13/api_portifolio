@@ -32,7 +32,7 @@ app.get(`/useri`, async (req, res) => {
 // Gera um segredo para o usuário
 app.get("/generateSecret", (req, res) => {
   const secret = speakeasy.generateSecret();
-  QRCode.toDataURL(secret.otpauth_url, (err, dataUrl) => {
+  QRCode.toDataURL(secret.otpauth_url, (err: any, dataUrl: any) => {
     if (err) {
       res.status(500).send("Erro ao gerar o QR code");
     } else {
