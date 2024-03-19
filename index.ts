@@ -1,8 +1,8 @@
 import { PrismaClient } from "./prisma/generated/client";
 import express from "express";
 
-import * as speakeasy from "speakeasy";
-import * as QRCode from "qrcode";
+const speakeasy = require("speakeasy");
+const QRCode = require("qrcode");
 
 const prisma = new PrismaClient();
 const app = express();
