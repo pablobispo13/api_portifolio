@@ -1,5 +1,5 @@
 import { PrismaClient } from "./prisma/generated/client";
-import express from "express";
+import express, { Request, Response } from 'express';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -7,25 +7,48 @@ const port = 3000;
 
 app.use(express.json());
 
-app.get("/users", async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.json(users);
-});
-
 app.get("/", (req, res) => {
   res.send("Hey this is my API running 🥳");
 });
 
-app.get(`/useri`, async (req, res) => {
-  const result = await prisma.user.create({
-    data: {
-      email: "teste@#teste",
-      name: "name",
-    },
-  });
-  res.json(result);
+app.get(`/validate_token`, async (req: Request, res: Response) => {
+  const { token } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { token },
+    });
+
+    if (user) {
+      return res.json({ valid: true, user_id: user.userId });
+    }
+
+    return res.json({ valid: false });
+  } catch (error) {
+    console.error('Error validating token:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
+app.post('/log', async (req: Request, res: Response) => {
+  const { timestamp, logType, message, userId } = req.body;
+
+  try {
+    await prisma.log.create({
+      data: {
+        timestamp: new Date(timestamp),
+        logType,
+        message,
+        userId,
+      },
+    });
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error logging:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
 // Implementação de autenticação de dois fatores utilizando o speakeasy e geração de qrcode
 
 // const speakeasy = require("speakeasy");

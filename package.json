@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.3.1",
+    "api_portifolio": "file:",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "qrcode": "^1.5.3",
