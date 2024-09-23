@@ -13,13 +13,28 @@ model Log {
   timestamp DateTime @default(now())
   logType   String
   message   String
-  userId    Int?
+  id_user   Int?
 
-  @@index([userId])
+  @@index([id_user])
 }
 
 model User {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  token String @unique
-  userId Int   @unique
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  token          String          @unique
+  id_user        Int             @unique
+  phoneNumber    String          @unique
+  twilioSettings TwilioSettings?
+}
+
+model TwilioSettings {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  accountSid String
+  authToken  String
+  fromNumber String
+  toNumber   String
+  id_user    Int    @unique
+
+  user User @relation(fields: [id_user], references: [id_user])
+
+  @@map("twilio_settings")
 }
