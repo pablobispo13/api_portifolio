@@ -1,8 +1,95 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "../prisma/generated/client";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const router = Router();
 const prisma = new PrismaClient();
+// Rota para login
+router.post("/login", async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "E-mail e senha são necessários." });
+  }
+
+  try {
+    // Busca o usuário pelo e-mail
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: "Usuário não encontrado." });
+    }
+
+    // Verifica a senha
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: "Senha incorreta." });
+    }
+
+    // Gera um token JWT
+    const token = jwt.sign(
+      { id_user: user.id_user },
+      process.env.JWT_SECRET || "secrect",
+      {
+        expiresIn: "1h", // Token válido por 1 hora
+      }
+    );
+
+    return res.json({ token, id_user: user.id_user });
+  } catch (error) {
+    console.error("Erro ao fazer login:", error);
+    return res.status(500).json({ error: "Erro ao fazer login." });
+  }
+});
+
+// Rota para criação de usuário
+router.post("/register", async (req: Request, res: Response) => {
+  const { email, password, phoneNumber } = req.body;
+
+  if (!email || !password || !phoneNumber) {
+    return res
+      .status(400)
+      .json({ error: "E-mail, senha e número de telefone são necessários." });
+  }
+
+  try {
+    // Verifica se o e-mail ou o número de telefone já estão registrados
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        phoneNumber: phoneNumber,
+      },
+    });
+
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ error: "E-mail ou número de telefone já registrados." });
+    }
+
+    // Hash da senha
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Criação do novo usuário
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        phoneNumber,
+      },
+    });
+
+    return res.status(201).json({
+      message: "Usuário criado com sucesso!",
+      id_user: newUser.id_user,
+    });
+  } catch (error) {
+    console.error("Erro ao criar usuário:", error);
+    return res.status(500).json({ error: "Erro ao criar usuário." });
+  }
+});
 
 // Valida o token do usuário
 router.get(`/validate_token`, async (req: Request, res: Response) => {

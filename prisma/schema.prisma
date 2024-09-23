@@ -23,6 +23,8 @@ model User {
   token          String          @unique
   id_user        Int             @unique
   phoneNumber    String          @unique
+  email          String          @unique
+  password       String
   twilioSettings TwilioSettings?
 }
 
